@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS | Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #a5f3fc, #c084fc);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 1rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            padding: 2rem 2.5rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .logout-btn {
+            background: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            text-decoration: none;
+            color: #dc2626;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #fee2e2;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -2px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -12px rgba(0,0,0,0.15);
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        /* Recent activity placeholder */
+        .recent-section {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .recent-section h3 {
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; padding: 1rem; }
+            .logo { font-size: 1.2rem; text-align: center; }
+            .nav-item span:last-child { display: none; }
+            .main { padding: 1rem; }
+        }
+    </style>
+    <script>
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const stats = await res.json();
+                document.getElementById('totalStudents').innerText = stats.total_students;
+                document.getElementById('avgCgpa').innerText = stats.avg_cgpa;
+                document.getElementById('activeCourses').innerText = stats.active_courses;
+            } catch (err) {
+                console.error('Stats error:', err);
+            }
+        }
+        window.onload = loadStats;
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">📚 SMS</div>
+        <nav>
+            <a href="/dashboard" class="nav-item active">
+                <span>📊</span> <span>Dashboard</span>
+            </a>
+            <a href="/manage-students" class="nav-item">
+                <span>👥</span> <span>Students</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Analytics Dashboard</h1>
+            <a href="/" class="logout-btn">← Logout</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Students</div>
+                <div class="stat-value" id="totalStudents">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Average CGPA</div>
+                <div class="stat-value" id="avgCgpa">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Active Courses</div>
+                <div class="stat-value" id="activeCourses">—</div>
+            </div>
+        </div>
+
+        <div class="recent-section">
+            <h3>📌 System Status</h3>
+            <p>All modules operational. Last sync: just now.</p>
+            <p style="margin-top: 0.5rem; color: #475569;">Use the "Students" page to manage records.</p>
+        </div>
+    </div>
+</body>
+</html>
