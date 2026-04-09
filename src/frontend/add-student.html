@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>Add Student</title><style>
+    body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+    input, select, textarea { width: 100%; margin: 8px 0; padding: 8px; }
+    button { background: #2ecc71; color: white; border: none; padding: 10px; cursor: pointer; }
+</style></head>
+<body>
+<div class="container">
+    <h2>Add New Student</h2>
+    <form id="addForm">
+        <label>Registration No (format: 00AAA0000):</label>
+        <input type="text" id="reg_no" required pattern="\d{2}[A-Z]{3}\d{4}">
+        <label>Name:</label> <input type="text" id="name" required>
+        <label>Course:</label>
+        <select id="course"><option>M.Tech SE</option><option>M.Tech AI</option><option>M.Tech DS</option></select>
+        <label>Attendance (%):</label> <input type="number" id="attendance" value="80">
+        <label>Grades (JSON array):</label>
+        <textarea id="grades" rows="3">[{"subject":"Math","grade":"A"}]</textarea>
+        <button type="submit">Add Student</button>
+    </form>
+    <button onclick="window.location.href='/dashboard.html'">Cancel</button>
+</div>
+<script>
+    document.getElementById('addForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const payload = {
+            reg_no: document.getElementById('reg_no').value,
+            name: document.getElementById('name').value,
+            course: document.getElementById('course').value,
+            attendance: parseInt(document.getElementById('attendance').value),
+            grades: JSON.parse(document.getElementById('grades').value)
+        };
+        fetch('/api/students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(res => res.json()).then(data => {
+            if (data.success) alert('Student added!');
+            else alert('Error: ' + data.error);
+            window.location.href = '/dashboard.html';
+        }).catch(err => alert('Invalid JSON for grades'));
+    });
+</script>
+</body>
+</html>

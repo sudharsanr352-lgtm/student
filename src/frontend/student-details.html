@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Profile</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+        button { padding: 8px 15px; margin: 10px 5px; cursor: pointer; }
+        .back-btn { background: #3498db; color: white; border: none; }
+        .edit-btn { background: #f39c12; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button class="back-btn" onclick="goBack()">← Back to Dashboard</button>
+    <h2 id="studentName">Student Profile</h2>
+    <div id="details"></div>
+    <h3>Attendance Trend</h3>
+    <canvas id="trendChart" width="400" height="200"></canvas>
+    <div id="editForm" style="display:none; margin-top:20px; border-top:1px solid #ccc;">
+        <h3>Edit Student</h3>
+        <label>Name: <input type="text" id="editName"></label><br>
+        <label>Course: <select id="editCourse"><option>M.Tech SE</option><option>M.Tech AI</option><option>M.Tech DS</option></select></label><br>
+        <label>Attendance: <input type="number" id="editAttendance"></label><br>
+        <label>Grades (JSON): <textarea id="editGrades" rows="3"></textarea></label><br>
+        <button onclick="saveEdit()">Save Changes</button>
+    </div>
+    <button class="edit-btn" onclick="showEditForm()">Edit Student</button>
+</div>
+<script>
+    const regNo = window.location.pathname.split('/').pop();
+    let studentData = null;
+    let trendChart = null;
+
+    function goBack() { window.location.href = '/dashboard.html'; }
+
+    function fetchStudent() {
+        fetch(`/api/students/${regNo}/profile`)
+            .then(res => res.json())
+            .then(data => {
+                studentData = data;
+                document.getElementById('studentName').innerText = `${data.name} (${data.reg_no})`;
+                document.getElementById('details').innerHTML = `
+                    <p><strong>Course:</strong> ${data.course}</p>
+                    <p><strong>CGPA:</strong> ${data.cgpa}</p>
+                    <p><strong>Attendance:</strong> ${data.attendance}%</p>
+                    <h4>Grades:</h4><ul>${(data.grades || []).map(g => `<li>${g.subject}: ${g.grade}</li>`).join('')}</ul>
+                `;
+                // populate edit fields
+                document.getElementById('editName').value = data.name;
+                document.getElementById('editCourse').value = data.course;
+                document.getElementById('editAttendance').value = data.attendance;
+                document.getElementById('editGrades').value = JSON.stringify(data.grades || []);
+            });
+    }
+
+    function fetchTrend() {
+        fetch(`/api/student/${regNo}/attendance-trend`)
+            .then(res => res.json())
+            .then(data => {
+                if (trendChart) trendChart.destroy();
+                const ctx = document.getElementById('trendChart').getContext('2d');
+                trendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: data.months, datasets: [{ label: 'Attendance %', data: data.attendance, borderColor: '#3498db', fill: false }] }
+                });
+            });
+    }
+
+    function showEditForm() { document.getElementById('editForm').style.display = 'block'; }
+
+    function saveEdit() {
+        const name = document.getElementById('editName').value;
+        const course = document.getElementById('editCourse').value;
+        const attendance = parseInt(document.getElementById('editAttendance').value);
+        let grades = [];
+        try { grades = JSON.parse(document.getElementById('editGrades').value); } catch(e) { alert('Invalid JSON'); return; }
+        fetch(`/api/students/${regNo}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, course, attendance, grades })
+        }).then(res => res.json()).then(() => {
+            alert('Updated successfully');
+            fetchStudent(); // refresh
+            document.getElementById('editForm').style.display = 'none';
+        });
+    }
+
+    fetchStudent();
+    fetchTrend();
+</script>
+</body>
+</html>
