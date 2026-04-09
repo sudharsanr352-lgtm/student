@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>Reports</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+    canvas { margin: 20px 0; }
+    button { background: #3498db; color: white; padding: 8px 15px; border: none; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="container">
+    <button onclick="window.location.href='/dashboard.html'">← Dashboard</button>
+    <h2>Reports & Analytics</h2>
+    <canvas id="enrollmentChart" width="400" height="250"></canvas>
+    <canvas id="attendanceTrend" width="400" height="250"></canvas>
+    <button onclick="exportReport()">Export Report (CSV)</button>
+</div>
+<script>
+    let enrollmentChart, trendChart;
+
+    fetch('/api/enrollment-stats')
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById('enrollmentChart').getContext('2d');
+            enrollmentChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: data.map(d=>d.course), datasets: [{ label: 'Enrolled', data: data.map(d=>d.enrolled), backgroundColor: '#3498db' }] }
+            });
+        });
+
+    fetch('/api/attendance-trend')
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById('attendanceTrend').getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: data.months, datasets: [{ label: 'Avg Attendance %', data: data.avg_attendance, borderColor: '#e67e22' }] }
+            });
+        });
+
+    function exportReport() {
+        fetch('/api/students').then(res=>res.json()).then(students=>{
+            let csv = "Reg No,Name,Course,CGPA,Attendance\n";
+            students.forEach(s=>csv+=`${s.reg_no},${s.name},${s.course},${s.cgpa},${s.attendance}\n`);
+            const blob = new Blob([csv], {type:'text/csv'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'full_report.csv';
+            link.click();
+        });
+    }
+</script>
+</body>
+</html>

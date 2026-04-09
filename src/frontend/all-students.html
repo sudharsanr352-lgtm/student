@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>All Students</title><style>
+    body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #3498db; color: white; }
+    button { padding: 5px 10px; margin: 2px; cursor: pointer; }
+    .back { background: #555; color: white; }
+</style></head>
+<body>
+<div class="container">
+    <button class="back" onclick="location.href='/dashboard.html'">← Back to Dashboard</button>
+    <h2>All Students</h2>
+    <input type="text" id="search" placeholder="Search..." onkeyup="fetchStudents()">
+    <select id="courseFilter" onchange="fetchStudents()"><option value="">All Courses</option><option>M.Tech SE</option><option>M.Tech AI</option><option>M.Tech DS</option></select>
+    <table id="studentTable"><thead><tr><th>Reg No</th><th>Name</th><th>Course</th><th>CGPA</th><th>Attendance</th><th>Actions</th></tr></thead><tbody id="tableBody"></tbody></table>
+</div>
+<script>
+    function fetchStudents() {
+        const search = document.getElementById('search').value;
+        const course = document.getElementById('courseFilter').value;
+        fetch(`/api/students?search=${search}&course=${course}`).then(res=>res.json()).then(data=>{
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(s=>{
+                tbody.innerHTML += `<tr>
+                    <td>${s.reg_no}</td><td><a href="/student/${s.reg_no}">${s.name}</a></td>
+                    <td>${s.course}</td><td>${s.cgpa}</td><td>${s.attendance}%</td>
+                    <td><button onclick="location.href='/edit-student?reg_no=${s.reg_no}'">Edit</button>
+                    <button onclick="deleteStudent('${s.reg_no}')">Delete</button></td>
+                </tr>`;
+            });
+        });
+    }
+    function deleteStudent(regNo) { if(confirm('Delete?')) fetch(`/api/students/${regNo}`,{method:'DELETE'}).then(()=>fetchStudents()); }
+    fetchStudents();
+</script>
+</body>
+</html>
