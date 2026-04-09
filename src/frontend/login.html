@@ -100,6 +100,17 @@
             transform: scale(0.98);
         }
 
+        .error-message {
+            color: #e74c3c;
+            background: #fdecea;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+            display: none;
+        }
+
         .footer-note {
             text-align: center;
             margin-top: 1.5rem;
@@ -117,18 +128,48 @@
     <div class="login-container">
         <h2>Student Management System</h2>
         <div class="subtitle">Sign in to access your dashboard</div>
-        <form action="/login" method="POST">
+        <div id="errorMsg" class="error-message"></div>
+        <form id="loginForm">
             <div class="input-group">
                 <label>Username</label>
-                <input type="text" name="username" placeholder="Enter your username" required>
+                <input type="text" id="username" placeholder="Enter your username" required>
             </div>
             <div class="input-group">
                 <label>Password</label>
-                <input type="password" name="password" placeholder="••••••••" required>
+                <input type="password" id="password" placeholder="••••••••" required>
             </div>
             <button type="submit">Login →</button>
-            <div class="footer-note">Demo: any username / password</div>
+            <div class="footer-note">Demo: admin / admin123</div>
         </form>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMsg');
+
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username, password: password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/dashboard.html';
+                } else {
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerText = data.message || 'Invalid credentials. Use admin / admin123';
+                }
+            })
+            .catch(err => {
+                errorDiv.style.display = 'block';
+                errorDiv.innerText = 'Server error. Please try again.';
+                console.error(err);
+            });
+        });
+    </script>
 </body>
 </html>
